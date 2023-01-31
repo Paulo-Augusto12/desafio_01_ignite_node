@@ -18,7 +18,7 @@ function checksExistsUserAccount(request, response, next) {
   if (!user) {
     return response
       .status(400)
-      .json({ ERRO: "O usuário informado não existe" });
+      .json({ error: "O usuário informado não existe" });
   }
 
   request.user = user;
@@ -36,17 +36,18 @@ app.post("/users", (request, response) => {
   const id = uuidv4();
 
   if (existentUser) {
-    return response.status(400).json({ ERRO: "usuário já existe" });
+    return response.status(400).json({ error: "usuário já existe" });
   }
 
-  users.push({
+  const user = {
     id,
     name,
     username,
     todos: [],
-  });
+  };
+  users.push(user);
 
-  return response.status(201).send(users);
+  return response.status(201).send(user);
 });
 
 app.get("/todos", checksExistsUserAccount, (request, response) => {
@@ -79,26 +80,46 @@ app.put("/todos/:id", checksExistsUserAccount, (request, response) => {
   // Complete aqui
 
   const { user } = request;
+  const { title, deadline } = request.body;
 
   const { id } = request.params;
 
-  const { title, deadline } = request.body;
+  const selectedTodo = user.todos.find((todoid) => todoid.id === id);
 
-  user.todos.title = title;
+  selectedTodo.title = title;
+  selectedTodo.deadline = deadline;
 
-  const checkId = user.todos.find((todo) => todo.id === id)
-
-  console.log(checkId)
+  console.log(selectedTodo);
 
   return response.status(200).send();
 });
 
 app.patch("/todos/:id/done", checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const { user } = request;
+
+  const { id } = request.params;
+
+  const { done_todo } = request.query;
+
+  const selectedTodo = user.todos.find((todoid) => todoid.id === id);
+
+  selectedTodo.done = true;
+
+  return response.status(200).send();
 });
 
 app.delete("/todos/:id", checksExistsUserAccount, (request, response) => {
   // Complete aqui
+
+  const { user } = request;
+
+  const { id } = request.params;
+
+  const selectedTodo = user.todos.find((todoid) => todoid.id === id);
+
+  user.todos.splice(selectedTodo, 1);
+
+  return response.status(200).send();
 });
 
 module.exports = app;
